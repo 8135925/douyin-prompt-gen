@@ -74,9 +74,9 @@ class App(tk.Tk):
         """卡片容器：白底 + 细描边 + 小方块标题，替代默认 LabelFrame。"""
         frame = tk.Frame(master, bg=CARD, highlightthickness=1,
                          highlightbackground=BORDER, highlightcolor=BORDER)
-        frame.pack(fill="x", padx=18, pady=(14, 0))
+        frame.pack(fill="x", padx=18, pady=(10, 0))
         head = tk.Frame(frame, bg=CARD)
-        head.pack(fill="x", padx=16, pady=(12, 6))
+        head.pack(fill="x", padx=16, pady=(10, 4))
         tk.Frame(head, bg=ACCENT_DOT, width=4, height=14).pack(side="left", padx=(0, 8), pady=1)
         tk.Label(head, text=title, bg=CARD, fg=TEXT,
                  font=(FONT, 10, "bold")).pack(side="left")
@@ -84,7 +84,7 @@ class App(tk.Tk):
             tk.Label(head, text=hint, bg=CARD, fg=MUTED,
                      font=(FONT, 8)).pack(side="right")
         inner = tk.Frame(frame, bg=CARD)
-        inner.pack(fill="both", expand=True, padx=16, pady=(0, 14))
+        inner.pack(fill="both", expand=True, padx=16, pady=(0, 10))
         return inner
 
     def _field(self, parent, row, label, default=""):
@@ -107,9 +107,9 @@ class App(tk.Tk):
         top = tk.Frame(self, bg=INK)
         top.pack(fill="x")
         tk.Label(top, text="抖音口播 · 一键生成", bg=INK, fg="#f4f2ee",
-                 font=(FONT, 13, "bold")).pack(anchor="w", padx=20, pady=(12, 0))
+                 font=(FONT, 13, "bold")).pack(anchor="w", padx=20, pady=(9, 0))
         tk.Label(top, text="提取音频 · 归档目录 · 生成发布提示词", bg=INK, fg="#9d968b",
-                 font=(FONT, 9)).pack(anchor="w", padx=20, pady=(0, 10))
+                 font=(FONT, 9)).pack(anchor="w", padx=20, pady=(0, 7))
 
         # Step1 信息采集
         s1 = self._card(self, "信息采集", hint="三项均为必填")
@@ -122,7 +122,7 @@ class App(tk.Tk):
                  font=(FONT, 9)).grid(row=2, column=0, sticky="nw", pady=5)
         copy_frame = tk.Frame(s1, bg=CARD)
         copy_frame.grid(row=2, column=1, sticky="ew", pady=5, padx=(8, 0))
-        self.txt_copy = tk.Text(copy_frame, height=5, font=(FONT, 10), relief="flat", bd=0,
+        self.txt_copy = tk.Text(copy_frame, height=1, font=(FONT, 10), relief="flat", bd=0,
                                 wrap="word", undo=True, fg=TEXT, bg=CARD,
                                 insertbackground=TEXT, highlightthickness=1,
                                 highlightbackground=FIELD_BORDER, highlightcolor=OK)
@@ -153,8 +153,8 @@ class App(tk.Tk):
 
         # 开始按钮区
         btn_row = tk.Frame(s1, bg=CARD)
-        btn_row.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(14, 0))
-        self.var_headless = tk.BooleanVar(value=False)
+        btn_row.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(8, 0))
+        self.var_headless = tk.BooleanVar(value=True)
         tk.Checkbutton(btn_row, text="隐藏浏览器窗口（无头模式，失败时可取消勾选重试）",
                        variable=self.var_headless, bg=CARD, fg=MUTED,
                        activebackground=CARD, activeforeground=TEXT,
@@ -164,7 +164,7 @@ class App(tk.Tk):
                                    bg=INK, fg="#f4f2ee", activebackground=INK_HOVER,
                                    activeforeground="#f4f2ee", font=(FONT, 11, "bold"),
                                    relief="flat", bd=0, padx=26, pady=8, cursor="hand2")
-        self.btn_start.pack(pady=(10, 0))
+        self.btn_start.pack(pady=(8, 0))
         self._hover(self.btn_start, INK, INK_HOVER)
 
         # Step2 进度与日志
@@ -175,7 +175,7 @@ class App(tk.Tk):
 
         # 四步骤指示条
         chips_row = tk.Frame(s2, bg=CARD)
-        chips_row.pack(fill="x", pady=(8, 4))
+        chips_row.pack(fill="x", pady=(6, 4))
         for i, txt in enumerate(("2.1 创建目录", "2.2 归档音频", "2.3 生成提示词", "2.4 输出提示词")):
             chip = tk.Label(chips_row, text=f"  {txt}  ", bg=CARD, fg=MUTED,
                             font=(FONT, 9), relief="flat",
@@ -190,9 +190,9 @@ class App(tk.Tk):
                         lightcolor=OK, darkcolor=OK)
         self.progress = ttk.Progressbar(s2, mode="determinate", maximum=100,
                                         style="App.Horizontal.TProgressbar")
-        self.progress.pack(fill="x", pady=(2, 8))
+        self.progress.pack(fill="x", pady=(2, 6))
 
-        self.txt_log = tk.Text(s2, height=10, bg=LOG_BG, fg=LOG_FG, font=(MONO, 9),
+        self.txt_log = tk.Text(s2, height=6, bg=LOG_BG, fg=LOG_FG, font=(MONO, 9),
                                relief="flat", bd=0, wrap="word", state="disabled",
                                insertbackground=LOG_FG, highlightthickness=0,
                                padx=10, pady=8)
@@ -221,7 +221,7 @@ class App(tk.Tk):
         self.txt_prompt.pack(fill="both", expand=True, pady=(8, 0))
 
         # 底部留白
-        tk.Frame(self, bg=BG, height=14).pack()
+        tk.Frame(self, bg=BG, height=10).pack()
 
     def _update_chips(self, stage):
         """stage: 0 待开始；1~4 进行中；5 全部完成。"""

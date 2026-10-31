@@ -128,6 +128,13 @@ def _find_visible_download_button(page, log, box):
 
 def download_audio(link: str, work_dir: Path, title: str, log, headless: bool = False) -> Path:
     """用 Playwright 打开 vidgap，粘贴短链、点击下载、捕获 mp3 并归档到 work_dir/{{title}}.mp3。"""
+    import os
+    # PyInstaller 打包后，playwright 会去解包临时目录找浏览器内核；
+    # 显式指向系统默认内核目录，确保 `playwright install chromium` 装的内核可用。
+    if "PLAYWRIGHT_BROWSERS_PATH" not in os.environ:
+        local_app = os.environ.get("LOCALAPPDATA") or os.path.join(os.path.expanduser("~"), "AppData", "Local")
+        os.environ["PLAYWRIGHT_BROWSERS_PATH"] = os.path.join(local_app, "ms-playwright")
+
     from playwright.sync_api import sync_playwright, TimeoutError as PWTimeoutError
 
     dest = work_dir / f"{title}.mp3"
