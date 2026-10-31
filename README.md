@@ -16,3 +16,15 @@ playwright install chromium
 python app.py
 ```
 
+## 图标与打包成 exe
+```powershell
+pip install pillow pyinstaller
+python gen_icon.py          # 生成 icon.ico（墨色圆角 + 白色"抖"字）
+python -m PyInstaller --noconsole --onefile --icon=icon.ico --collect-all playwright --name DouyinPromptGen app.py
+```
+生成物在 `dist\DouyinPromptGen.exe`，双击即可运行。
+
+注意：
+- 打包只包含程序本体，不含 Chromium 内核。目标电脑需执行过 `playwright install chromium`（本机已装则无需处理）。
+- 若在未装内核的电脑提示浏览器启动失败，运行 `pip install playwright && playwright install chromium` 后再打开 exe 即可。
+

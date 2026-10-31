@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# PyInstaller 构建中间产物
+# 注意：dist/ 不忽略——生成的 exe 需要提交到仓库
+build/
+*.spec
+
+# 临时与日志文件
+_icon_log.txt
+_chk.txt
+*.log
+
+# IDE / 编辑器
+.idea/
+.vscode/
+
+# 系统文件
+Thumbs.db
+Desktop.ini
