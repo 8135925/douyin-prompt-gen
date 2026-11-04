@@ -118,10 +118,24 @@ class App(tk.Tk):
         self.entry_title = self._field(s1, 0, "标题名字", DEFAULT_TITLE)
         self.entry_link = self._field(s1, 1, "抖音链接", DEFAULT_LINK)
 
+        # 下载方式选择（默认方式3）
+        tk.Label(s1, text="下载方式", bg=CARD, fg=TEXT,
+                 font=(FONT, 9)).grid(row=2, column=0, sticky="w", pady=5)
+        method_frame = tk.Frame(s1, bg=CARD)
+        method_frame.grid(row=2, column=1, sticky="w", pady=5, padx=(8, 0))
+        self.var_method = tk.StringVar(value="dlpanda")
+        for value, text in (("dlpanda", "方式3 · DLPanda（默认）"),
+                            ("snaptik", "方式2 · Snaptik"),
+                            ("vidgap", "方式1 · Vidgap")):
+            tk.Radiobutton(method_frame, text=text, variable=self.var_method, value=value,
+                           bg=CARD, fg=TEXT, activebackground=CARD, activeforeground=TEXT,
+                           selectcolor=CARD, font=(FONT, 9), relief="flat",
+                           bd=0, cursor="hand2").pack(side="left", padx=(0, 14))
+
         tk.Label(s1, text="口播文案", bg=CARD, fg=TEXT,
-                 font=(FONT, 9)).grid(row=2, column=0, sticky="nw", pady=5)
+                 font=(FONT, 9)).grid(row=3, column=0, sticky="nw", pady=5)
         copy_frame = tk.Frame(s1, bg=CARD)
-        copy_frame.grid(row=2, column=1, sticky="ew", pady=5, padx=(8, 0))
+        copy_frame.grid(row=3, column=1, sticky="ew", pady=5, padx=(8, 0))
         self.txt_copy = tk.Text(copy_frame, height=1, font=(FONT, 10), relief="flat", bd=0,
                                 wrap="word", undo=True, fg=TEXT, bg=CARD,
                                 insertbackground=TEXT, highlightthickness=1,
@@ -134,9 +148,9 @@ class App(tk.Tk):
         self.lbl_copy_count.pack(fill="x")
 
         tk.Label(s1, text="文档根目录", bg=CARD, fg=TEXT,
-                 font=(FONT, 9)).grid(row=3, column=0, sticky="w", pady=5)
+                 font=(FONT, 9)).grid(row=4, column=0, sticky="w", pady=5)
         dir_frame = tk.Frame(s1, bg=CARD)
-        dir_frame.grid(row=3, column=1, sticky="ew", pady=5, padx=(8, 0))
+        dir_frame.grid(row=4, column=1, sticky="ew", pady=5, padx=(8, 0))
         default_root = os.path.join(os.path.expanduser("~"), "Documents")
         self.var_docs_root = tk.StringVar(value=default_root)
         dir_entry = tk.Entry(dir_frame, textvariable=self.var_docs_root, font=(FONT, 9),
@@ -151,9 +165,14 @@ class App(tk.Tk):
         btn_browse.pack(side="left", padx=(8, 0))
         self._hover(btn_browse, "#ebe7df", "#e0dbd2")
 
+        # 代理（可选，snaptik 等站点直连被阻时填写）
+        self.entry_proxy = self._field(s1, 5, "代理（可选）")
+        tk.Label(s1, text="网络被阻时填写，如 http://127.0.0.1:7890", bg=CARD, fg=MUTED,
+                 font=(FONT, 8)).grid(row=5, column=1, sticky="w", padx=(8, 0))
+
         # 开始按钮区
         btn_row = tk.Frame(s1, bg=CARD)
-        btn_row.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(8, 0))
+        btn_row.grid(row=6, column=0, columnspan=2, sticky="ew", pady=(8, 0))
         self.var_headless = tk.BooleanVar(value=True)
         tk.Checkbutton(btn_row, text="隐藏浏览器窗口（无头模式，失败时可取消勾选重试）",
                        variable=self.var_headless, bg=CARD, fg=MUTED,
@@ -192,7 +211,7 @@ class App(tk.Tk):
                                         style="App.Horizontal.TProgressbar")
         self.progress.pack(fill="x", pady=(2, 6))
 
-        self.txt_log = tk.Text(s2, height=6, bg=LOG_BG, fg=LOG_FG, font=(MONO, 9),
+        self.txt_log = tk.Text(s2, height=5, bg=LOG_BG, fg=LOG_FG, font=(MONO, 9),
                                relief="flat", bd=0, wrap="word", state="disabled",
                                insertbackground=LOG_FG, highlightthickness=0,
                                padx=10, pady=8)
@@ -350,15 +369,33 @@ class App(tk.Tk):
                 return
             self._log(f"工作目录就绪：{work_dir}（已存在则复用）", "ok")
 
-            # 2.2 提取并归档音频
+            # 2.2 提取并归档音频（按用户选择的下载方式，不可达时按顺序自动降级）
             self._set_progress(30, "步骤 2.2 · 提取并归档音频")
-            try:
-                audio = core.download_audio(link, work_dir, title, self._log,
-                                            headless=self.var_headless.get())
-            except StepError as e:
-                self._log(str(e), "err")
-                messagebox.showerror("执行失败", str(e))
-                return
+            method = self.var_method.get()
+            method_names = {"dlpanda": "方式3 · DLPanda", "snaptik": "方式2 · Snaptik",
+                            "vidgap": "方式1 · Vidgap"}
+            downloaders = {"dlpanda": core.download_audio_dlpanda,
+                           "snaptik": core.download_audio_snaptik,
+                           "vidgap": core.download_audio}
+            order = [method] + [m for m in ("dlpanda", "snaptik", "vidgap") if m != method]
+            self._log(f"下载方式：{method_names[method]}")
+            proxy = self.entry_proxy.get().strip() or None
+            audio = None
+            for i, m in enumerate(order):
+                if i > 0:
+                    self._log(f"自动切换 {method_names[m]} 重试……", "warn")
+                try:
+                    # 方式1 Vidgap 国内直连可用，不走代理；方式2/3 为国外站点走代理
+                    px = proxy if m in ("snaptik", "dlpanda") else None
+                    audio = downloaders[m](link, work_dir, title, self._log,
+                                           headless=self.var_headless.get(), proxy=px)
+                    break
+                except StepError as e:
+                    self._log(str(e), "err")
+                    # 站点不可达才降级到下一种方式；其他错误直接报错终止
+                    if "无法访问" not in str(e) or i == len(order) - 1:
+                        messagebox.showerror("执行失败", str(e))
+                        return
             self._set_progress(75, "步骤 2.2 完成 · 音频已归档")
             self._log(f"音频归档完成：{audio}", "ok")
 
